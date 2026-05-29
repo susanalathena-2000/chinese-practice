@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Chinese Character Practice</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:100%;}
+:root{
+  --bg:#fff;--bg2:#f5f5f3;--bg3:#ececea;
+  --text:#1a1a1a;--text2:#6b6b68;--text3:#9b9b97;
+  --border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+  --blue:#378ADD;--blue50:#E6F1FB;--blue800:#0C447C;
+  --teal:#1D9E75;--teal50:#E1F5EE;--teal800:#085041;
+  --red:#E24B4A;--red50:#FCEBEB;--red800:#791F1F;
+  --r:8px;--rl:12px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1c1c1a;--bg2:#252523;--bg3:#2d2d2a;
+  --text:#f0efe8;--text2:#9b9b97;--text3:#6b6b68;
+  --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.18);
+  --blue50:#042C53;--blue800:#B5D4F4;
+  --teal50:#04342C;--teal800:#9FE1CB;
+  --red50:#501313;--red800:#F7C1C1;
+}}
+body{font-family:-apple-system,"Helvetica Neue",Arial,sans-serif;background:var(--bg3);color:var(--text);min-height:100vh;padding:16px 12px 60px;}
+.card{background:var(--bg);border-radius:var(--rl);border:0.5px solid var(--border);padding:20px 16px;width:100%;max-width:460px;margin:0 auto;}
+.screen{display:none;}.screen.active{display:block;}
+.mascot{text-align:center;margin-bottom:12px;}
+.title{text-align:center;font-size:20px;font-weight:500;color:var(--text);margin-bottom:4px;}
+.subtitle{text-align:center;font-size:13px;color:var(--text2);margin-bottom:20px;}
+.field-label{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;display:block;}
+.queue-box{min-height:56px;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg2);padding:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:10px;}
+.queue-hint{font-size:12px;color:var(--text3);font-style:italic;}
+/* each queue tile is a plain <a> tag — most reliable tappable on iOS */
+.qtile{width:44px;height:44px;border-radius:var(--r);background:var(--bg);border:0.5px solid var(--border2);font-size:22px;display:inline-flex;align-items:center;justify-content:center;position:relative;text-decoration:none;color:var(--text);cursor:pointer;-webkit-tap-highlight-color:rgba(0,0,0,0.1);}
+.qtile::after{content:'×';position:absolute;top:-5px;right:-5px;width:16px;height:16px;background:var(--red);color:#fff;border-radius:50%;font-size:11px;font-weight:700;line-height:16px;text-align:center;pointer-events:none;}
+/* input row */
+.input-row{display:flex;gap:8px;margin-bottom:12px;}
+.char-field{flex:1;min-width:0;height:48px;padding:0 12px;font-size:24px;font-family:inherit;border:0.5px solid var(--border2);border-radius:var(--r);background:var(--bg2);color:var(--text);-webkit-appearance:none;outline:none;}
+.char-field:focus{border-color:var(--blue);background:var(--bg);}
+/* ADD BUTTON — input[type=button] avoids all iOS <button> issues */
+.add-btn{width:48px;height:48px;flex-shrink:0;border:none;border-radius:var(--r);background:var(--blue);color:#fff;font-size:22px;cursor:pointer;-webkit-appearance:none;padding:0;font-family:inherit;}
+/* options */
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;}
+.opt{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:10px;}
+.opt label{font-size:11px;font-weight:500;color:var(--text2);display:block;margin-bottom:5px;}
+.opt select{width:100%;height:32px;background:var(--bg);border:0.5px solid var(--border2);border-radius:6px;padding:0 8px;font-size:13px;color:var(--text);-webkit-appearance:none;}
+/* START BUTTON */
+.start-btn{display:block;width:100%;height:48px;border:none;border-radius:var(--rl);background:var(--blue);color:#fff;font-size:16px;font-weight:500;cursor:pointer;-webkit-appearance:none;font-family:inherit;margin-top:0;}
+.err{text-align:center;color:var(--red);font-size:13px;margin-top:8px;min-height:18px;}
+/* practice */
+.prog{height:4px;background:var(--bg2);border-radius:99px;margin-bottom:14px;overflow:hidden;}
+.prog-fill{height:4px;background:var(--blue);border-radius:99px;transition:width .4s;width:0%;}
+.cnt-row{display:flex;justify-content:center;margin-bottom:10px;}
+.cnt-pill{font-size:12px;font-weight:500;color:var(--text2);background:var(--bg2);border:0.5px solid var(--border);padding:2px 12px;border-radius:99px;}
+.star-row{display:flex;justify-content:center;gap:3px;flex-wrap:wrap;margin-bottom:10px;}
+.star{font-size:16px;opacity:.25;}.star.done{opacity:1;}.star.now{opacity:.9;}
+.tiles-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-bottom:12px;scrollbar-width:none;}
+.tiles-wrap::-webkit-scrollbar{display:none;}
+.tiles{display:flex;gap:5px;padding:2px;flex-wrap:nowrap;}
+.tile{width:36px;height:36px;flex-shrink:0;border-radius:var(--r);border:0.5px solid var(--border2);background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.tile.now{border-color:var(--blue);background:var(--blue50);color:var(--blue800);}
+.tile.done{border-color:var(--teal);background:var(--teal50);color:var(--teal800);font-size:13px;}
+.tile.next{opacity:.3;}
+.practice-body{display:flex;gap:8px;align-items:flex-start;margin-bottom:8px;}
+.mc{flex-shrink:0;width:68px;display:flex;flex-direction:column;align-items:center;gap:6px;padding-top:16px;}
+.mc svg{width:56px;height:56px;}
+.bubble{background:var(--bg);border:0.5px solid var(--border2);border-radius:8px;padding:4px 6px;font-size:10px;color:var(--text2);text-align:center;width:64px;line-height:1.3;position:relative;}
+.bubble::after{content:'';position:absolute;top:-6px;left:50%;transform:translateX(-50%);border:4px solid transparent;border-bottom-color:var(--border2);}
+#writer-target{flex:1;min-width:0;aspect-ratio:1/1;max-width:300px;border:0.5px solid var(--border2);border-radius:var(--rl);background:var(--bg);position:relative;overflow:visible;}
+.flash{position:absolute;inset:0;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:50px;pointer-events:none;opacity:0;transition:opacity .1s;z-index:20;}
+.flash.ok{background:rgba(29,158,117,.15);opacity:1;}
+.flash.no{background:rgba(226,75,74,.12);opacity:1;}
+.status{text-align:center;font-size:13px;min-height:20px;margin:10px 0 4px;color:var(--text2);}
+.status.ok{color:var(--teal);}.status.no{color:var(--red);}
+.hearts{display:flex;gap:3px;justify-content:center;min-height:16px;margin-bottom:8px;font-size:13px;}
+.acts{display:flex;gap:8px;justify-content:center;}
+.act-btn{height:40px;padding:0 16px;font-size:13px;font-weight:500;border:0.5px solid var(--border2);border-radius:99px;background:var(--bg2);color:var(--text);cursor:pointer;-webkit-appearance:none;font-family:inherit;}
+/* results */
+.scores{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px;}
+.sc{background:var(--bg2);border:0.5px solid var(--border);border-radius:var(--r);padding:12px 8px;text-align:center;}
+.sc .v{font-size:24px;font-weight:500;color:var(--text);}
+.sc .l{font-size:11px;color:var(--text2);margin-top:2px;}
+.sc.good .v{color:var(--teal);}.sc.bad .v{color:var(--red);}.sc.blue .v{color:var(--blue);}
+.res-table{width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px;}
+.res-table th{text-align:left;padding:6px 8px;font-size:11px;font-weight:500;color:var(--text2);border-bottom:0.5px solid var(--border);}
+.res-table td{padding:8px;border-bottom:0.5px solid var(--border);vertical-align:middle;}
+.cbig{font-size:22px;}
+.badge{display:inline-block;font-size:11px;font-weight:500;padding:2px 8px;border-radius:99px;}
+.badge.pass{background:var(--teal50);color:var(--teal800);}
+.badge.fail{background:var(--red50);color:var(--red800);}
+.badge.skip{background:var(--bg2);color:var(--text2);}
+.again-btn{display:block;width:100%;height:44px;border:0.5px solid var(--border2);border-radius:var(--rl);background:var(--bg2);color:var(--text);font-size:15px;font-weight:500;cursor:pointer;-webkit-appearance:none;font-family:inherit;}
+</style>
+</head>
+<body>
+<div class="card">
+
+<!-- SETUP -->
+<div id="s0" class="screen active">
+  <div class="mascot">
+    <svg width="80" height="80" viewBox="0 0 110 110" fill="none">
+      <ellipse cx="28" cy="30" rx="11" ry="11" fill="#333"/><ellipse cx="28" cy="30" rx="7" ry="7" fill="#555"/>
+      <ellipse cx="82" cy="30" rx="11" ry="11" fill="#333"/><ellipse cx="82" cy="30" rx="7" ry="7" fill="#555"/>
+      <circle cx="55" cy="46" r="30" fill="#f8f8f8" stroke="#ddd" stroke-width="1.5"/>
+      <ellipse cx="43" cy="43" rx="9" ry="9" fill="#333"/><ellipse cx="67" cy="43" rx="9" ry="9" fill="#333"/>
+      <circle cx="43" cy="43" r="4.5" fill="#fff"/><circle cx="67" cy="43" r="4.5" fill="#fff"/>
+      <circle cx="44" cy="42" r="1.8" fill="#111"/><circle cx="68" cy="42" r="1.8" fill="#111"/>
+      <ellipse cx="55" cy="52" rx="4" ry="3" fill="#f9a8b0"/>
+      <path d="M48 57 Q55 64 62 57" stroke="#f9a8b0" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <ellipse cx="35" cy="56" rx="6" ry="4" fill="#ffb0b8" opacity=".5"/>
+      <ellipse cx="75" cy="56" rx="6" ry="4" fill="#ffb0b8" opacity=".5"/>
+      <ellipse cx="55" cy="78" rx="28" ry="24" fill="#f0f0f0" stroke="#ddd" stroke-width="1.5"/>
+      <ellipse cx="28" cy="78" rx="8" ry="13" fill="#f0f0f0" stroke="#ddd" stroke-width="1.5" transform="rotate(-30 28 78)"/>
+      <ellipse cx="82" cy="75" rx="8" ry="13" fill="#f0f0f0" stroke="#ddd" stroke-width="1.5" transform="rotate(25 82 75)"/>
+      <rect x="14" y="60" width="4" height="20" rx="2" fill="#8B6914" transform="rotate(-30 14 60)"/>
+      <path d="M8 77 L14 69 L20 77 Q14 83 8 77Z" fill="#333"/>
+      <ellipse cx="55" cy="85" rx="16" ry="11" fill="#fff" opacity=".6"/>
+    </svg>
+  </div>
+  <div class="title">Chinese character practice</div>
+  <p class="subtitle">Add characters one at a time, then start.</p>
+  <span class="field-label">Characters to practice</span>
+  <div class="queue-box" id="qbox"><span class="queue-hint">Tap + to add characters</span></div>
+  <div class="input-row">
+    <input type="text" id="cf" class="char-field" placeholder="一"
+      autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"/>
+    <input type="button" class="add-btn" value="+" onclick="doAdd()"/>
+  </div>
+  <div class="opts">
+    <div class="opt">
+      <label for="hs">Hint after</label>
+      <select id="hs"><option value="1">1 mistake</option><option value="2" selected>2 mistakes</option><option value="3">3 mistakes</option><option value="99">Never</option></select>
+    </div>
+    <div class="opt">
+      <label for="ps">Pass if mistakes</label>
+      <select id="ps"><option value="0" selected>= 0 (perfect)</option><option value="1">≤ 1</option><option value="2">≤ 2</option><option value="3">≤ 3</option></select>
+    </div>
+  </div>
+  <input type="button" class="start-btn" value="Start practice" onclick="doStart()"/>
+  <div class="err" id="err"></div>
+</div>
+
+<!-- PRACTICE -->
+<div id="s1" class="screen">
+  <div class="prog"><div class="prog-fill" id="pf"></div></div>
+  <div class="cnt-row"><span class="cnt-pill" id="cnt">1 of 1</span></div>
+  <div class="star-row" id="sr"></div>
+  <div class="tiles-wrap"><div class="tiles" id="tl"></div></div>
+  <div class="practice-body">
+    <div class="mc">
+      <div class="bubble" id="bbl">Draw it!</div>
+      <svg id="msv" width="56" height="56" viewBox="0 0 110 110" fill="none">
+        <ellipse cx="28" cy="30" rx="11" ry="11" fill="#333"/><ellipse cx="28" cy="30" rx="7" ry="7" fill="#555"/>
+        <ellipse cx="82" cy="30" rx="11" ry="11" fill="#333"/><ellipse cx="82" cy="30" rx="7" ry="7" fill="#555"/>
+        <circle cx="55" cy="46" r="30" fill="#f8f8f8" stroke="#ddd" stroke-width="1.5"/>
+        <ellipse cx="43" cy="43" rx="9" ry="9" fill="#333"/><ellipse cx="67" cy="43" rx="9" ry="9" fill="#333"/>
+        <circle cx="43" cy="43" r="4.5" fill="#fff"/><circle cx="67" cy="43" r="4.5" fill="#fff"/>
+        <circle cx="44" cy="42" r="1.8" fill="#111"/><circle cx="68" cy="42" r="1.8" fill="#111"/>
+        <ellipse cx="55" cy="52" rx="4" ry="3" fill="#f9a8b0"/>
+        <path id="mm" d="M48 57 Q55 63 62 57" stroke="#f9a8b0" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+        <ellipse cx="35" cy="56" rx="6" ry="4" fill="#ffb0b8" opacity=".5"/>
+        <ellipse cx="75" cy="56" rx="6" ry="4" fill="#ffb0b8" opacity=".5"/>
+        <ellipse cx="55" cy="78" rx="28" ry="24" fill="#f0f0f0" stroke="#ddd" stroke-width="1.5"/>
+        <ellipse cx="55" cy="85" rx="16" ry="11" fill="#fff" opacity=".6"/>
+      </svg>
+    </div>
+    <div id="writer-target"><div class="flash" id="fl"></div></div>
+  </div>
+  <div class="status" id="st">Trace the character stroke by stroke</div>
+  <div class="hearts" id="ht"></div>
+  <div class="acts" id="acts">
+    <input type="button" class="act-btn" value="Show strokes" onclick="doAnim()"/>
+    <input type="button" class="act-btn" value="Skip" onclick="doSkip()"/>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div id="s2" class="screen">
+  <div class="mascot">
+    <svg width="80" height="80" viewBox="0 0 110 110" fill="none">
+      <ellipse cx="28" cy="30" rx="11" ry="11" fill="#333"/><ellipse cx="28" cy="30" rx="7" ry="7" fill="#555"/>
+      <ellipse cx="82" cy="30" rx="11" ry="11" fill="#333"/><ellipse cx="82" cy="30" rx="7" ry="7" fill="#555"/>
+      <circle cx="55" cy="46" r="30" fill="#f8f8f8" stroke="#ddd" stroke-width="1.5"/>
+      <ellipse cx="43" cy="43" rx="9" ry="9" fill="#333"/><ellipse cx="67" cy="43" rx="9" ry="9" fill="#333"/>
+      <circle cx="43" cy="43" r="5" fill="#fff"/><circle cx="67" cy="43" r="5" fill="#fff"/>
+      <path d="M38 43 Q43 37 48 43" stroke="#222" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <path d="M62 43 Q67 37 72 43" stroke="#222" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <ellipse cx="55" cy="52" rx="4" ry="3" fill="#f9a8b0"/>
+      <path d="M44 57 Q55 68 66 57" stroke="#f9a8b0" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+      <ellipse cx="55" cy="78" rx="28" ry="24" fill="#f0f0f0" stroke="#ddd" stroke-width="1.5"/>
+      <ellipse cx="24" cy="68" rx="8" ry="14" fill="#f0f0f0" stroke="#ddd" stroke-width="1.5" transform="rotate(-60 24 68)"/>
+      <ellipse cx="86" cy="68" rx="8" ry="14" fill="#f0f0f0" stroke="#ddd" stroke-width="1.5" transform="rotate(60 86 68)"/>
+      <ellipse cx="55" cy="85" rx="16" ry="11" fill="#fff" opacity=".6"/>
+    </svg>
+  </div>
+  <div class="title" id="rt">Practice complete</div>
+  <p class="subtitle" id="rsub"></p>
+  <div class="scores" id="sc"></div>
+  <table class="res-table"><thead><tr><th>Character</th><th>Mistakes</th><th>Result</th></tr></thead><tbody id="rb"></tbody></table>
+  <input type="button" class="again-btn" value="Practice again" onclick="doAgain()"/>
+</div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+<script>
+var CL=[],PC=[],pi=0,mis=0,res=[],ha=2,pm=0,busy=false,wsz=200,W=null;
+var ID=['Draw it!','You can do it!','Stroke by stroke!','Go for it!'];
+var OK=['Great stroke!','Keep going!','Nice one!','Awesome!'];
+var NO=['Try again!','Almost!','Keep going!','You got this!'];
+function rnd(a){return a[Math.floor(Math.random()*a.length)];}
+function cjk(c){var n=c.charCodeAt(0);return(n>=0x4E00&&n<=0x9FFF)||(n>=0x3400&&n<=0x4DBF)||(n>=0xF900&&n<=0xFAFF);}
+function go(id){document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active');});document.getElementById(id).classList.add('active');}
+function g(id){return document.getElementById(id);}
+
+function rq(){
+  var b=g('qbox');
+  if(!CL.length){b.innerHTML='<span class="queue-hint">Tap + to add characters</span>';return;}
+  b.innerHTML='';
+  for(var i=0;i<CL.length;i++){
+    var a=document.createElement('a');
+    a.href='#';a.className='qtile';a.textContent=CL[i];
+    a.setAttribute('data-i',i);
+    b.appendChild(a);
+  }
+  /* single delegated listener on the box */
+  b.onclick=function(e){
+    var t=e.target;
+    if(t.className==='qtile'||t.classList&&t.classList.contains('qtile')){
+      e.preventDefault();
+      var idx=parseInt(t.getAttribute('data-i'),10);
+      if(!isNaN(idx)){CL.splice(idx,1);rq();}
+    }
+  };
+}
+
+function doAdd(){
+  var f=g('cf');
+  var raw=(f.value||'').trim();f.value='';
+  var out=[];for(var i=0;i<raw.length;i++){if(cjk(raw[i]))out.push(raw[i]);}
+  if(!out.length){f.style.borderColor='#E24B4A';setTimeout(function(){f.style.borderColor='';},800);return;}
+  for(var j=0;j<out.length;j++)CL.push(out[j]);
+  rq();
+}
+
+function doStart(){
+  var err=g('err');
+  if(!CL.length){err.textContent='Add at least one character first';setTimeout(function(){err.textContent='';},2500);return;}
+  ha=parseInt(g('hs').value,10);pm=parseInt(g('ps').value,10);
+  PC=CL.slice();res=[];pi=0;busy=false;W=null;
+  go('s1');
+  setTimeout(function(){
+    var el=g('writer-target');
+    wsz=Math.max(140,Math.floor(el.getBoundingClientRect().width));
+    bSt();bTl();lCh(0);
+  },80);
+}
+
+function bSt(){var h='';for(var i=0;i<PC.length;i++)h+='<span class="star" id="sr'+i+'">★</span>';g('sr').innerHTML=h;}
+function rSt(){for(var i=0;i<PC.length;i++){var e=g('sr'+i);if(!e)continue;e.className=i<pi?'star done':i===pi?'star now':'star';}}
+function bTl(){var h='';for(var i=0;i<PC.length;i++)h+='<div class="tile next" id="t'+i+'">'+PC[i]+'</div>';g('tl').innerHTML=h;}
+function rTl(){
+  for(var i=0;i<PC.length;i++){var e=g('t'+i);if(!e)continue;
+    if(i<pi){e.className='tile done';e.textContent='✓';}
+    else if(i===pi){e.className='tile now';e.textContent=PC[i];}
+    else{e.className='tile next';e.textContent=PC[i];}
+  }
+}
+
+function lCh(i){
+  busy=false;mis=0;var ch=PC[i];
+  g('pf').style.width=(i/PC.length*100)+'%';
+  g('cnt').textContent=(i+1)+' of '+PC.length;
+  setSt('Trace the character stroke by stroke','');
+  setBbl(rnd(ID));setM('n');
+  g('ht').innerHTML='';
+  g('acts').style.display='flex';
+  clFl();rSt();rTl();
+  if(W){W.cancelQuiz();W.setCharacter(ch,{onLoadCharDataSuccess:sQ});}
+  else{
+    W=HanziWriter.create('writer-target',ch,{
+      width:wsz,height:wsz,padding:Math.round(wsz*.08),
+      showCharacter:false,showOutline:true,
+      outlineColor:'rgba(150,150,150,0.35)',
+      strokeColor:'#378ADD',drawingColor:'#1a1a1a',
+      drawingWidth:Math.max(4,Math.round(wsz*.025)),
+      strokeAnimationSpeed:1,delayBetweenStrokes:300,
+      highlightColor:'#1D9E75',highlightOnComplete:true,
+      onLoadCharDataSuccess:sQ,
+      onLoadCharDataError:function(){setSt('No internet connection','no');}
+    });
+  }
+}
+
+function sQ(){
+  if(!W)return;
+  W.quiz({showHintAfterMisses:ha,leniency:1,
+    onMistake:function(){mis++;hts();setSt('Wrong stroke, try again','no');setBbl(rnd(NO));setM('s');shFl('no');setTimeout(clFl,600);},
+    onCorrectStroke:function(){setSt('Good stroke, keep going','ok');setBbl(rnd(OK));setM('h');},
+    onComplete:function(){
+      if(busy)return;busy=true;
+      var p=mis<=pm;res.push({char:PC[pi],mistakes:mis,passed:p});
+      if(p){setSt('Correct!','ok');setBbl('Well done!');setM('h');shFl('ok');setTimeout(clFl,700);}
+      else{setSt('Done — '+mis+' mistake'+(mis!==1?'s':''),'no');setBbl('Next one!');}
+      g('acts').style.display='none';
+      setTimeout(adv,1600);
+    }
+  });
+}
+
+function adv(){pi++;if(pi>=PC.length)shRes();else lCh(pi);}
+
+function doAnim(){
+  if(!W||busy)return;W.cancelQuiz();
+  setSt('Watch the stroke order...','');setBbl('Watch me!');
+  W.animateCharacter({onComplete:function(){setSt('Now trace it yourself','');setBbl('Your turn!');sQ();}});
+}
+function doSkip(){if(busy)return;busy=true;res.push({char:PC[pi],mistakes:-1,passed:false,skipped:true});adv();}
+
+function hts(){var r=g('ht');r.innerHTML='';for(var i=0;i<Math.min(mis,8);i++){var s=document.createElement('span');s.textContent='💔';r.appendChild(s);}}
+function setSt(m,c){var e=g('st');e.textContent=m;e.className='status'+(c?' '+c:'');}
+function setBbl(t){var e=g('bbl');if(e)e.textContent=t;}
+function setM(m){var e=g('mm');if(!e)return;if(m==='h')e.setAttribute('d','M46 56 Q55 65 64 56');else if(m==='s')e.setAttribute('d','M48 61 Q55 55 62 61');else e.setAttribute('d','M48 57 Q55 63 62 57');}
+function shFl(t){var e=g('fl');e.className='flash '+t;e.textContent=t==='ok'?'✓':'✗';}
+function clFl(){var e=g('fl');e.className='flash';e.textContent='';}
+
+function shRes(){
+  if(W){try{W.cancelQuiz();}catch(x){}}
+  go('s2');
+  var tot=res.length,pass=0,totM=0;
+  for(var i=0;i<res.length;i++){if(res[i].passed)pass++;if(res[i].mistakes>0)totM+=res[i].mistakes;}
+  var pct=Math.round(pass/tot*100);
+  g('rt').textContent=pct===100?'Perfect score!':pct>=80?'Great work!':pct>=50?'Good effort!':'Keep practising!';
+  g('rsub').textContent=tot+' character'+(tot!==1?'s':'')+' — '+pass+' passed, '+(tot-pass)+' to review';
+  g('sc').innerHTML='<div class="sc '+(pass===tot?'good':'blue')+'"><div class="v">'+pass+'/'+tot+'</div><div class="l">Passed</div></div><div class="sc '+(totM===0?'good':'bad')+'"><div class="v">'+totM+'</div><div class="l">Mistakes</div></div><div class="sc '+(pct>=80?'good':pct>=50?'blue':'bad')+'"><div class="v">'+pct+'%</div><div class="l">Score</div></div>';
+  var rows='';for(var i=0;i<res.length;i++){var r=res[i];rows+='<tr><td class="cbig">'+r.char+'</td><td>'+(r.skipped?'—':r.mistakes)+'</td><td><span class="badge '+(r.skipped?'skip':r.passed?'pass':'fail')+'">'+(r.skipped?'Skipped':r.passed?'Passed':'Review')+'</span></td></tr>';}
+  g('rb').innerHTML=rows;
+}
+
+function doAgain(){W=null;CL=[];rq();go('s0');}
+
+/* also allow Enter in the text field */
+g('cf').addEventListener('keydown',function(e){if(e.keyCode===13){e.preventDefault();doAdd();}});
+
+rq();
+</script>
+</body>
+</html>
