@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tutor Tracker">
+<title>Tutor Tracker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F7F5F0;
+    --surface: #FFFFFF;
+    --surface2: #F0EDE8;
+    --border: rgba(0,0,0,0.08);
+    --border2: rgba(0,0,0,0.14);
+    --text: #1A1814;
+    --text2: #6B6760;
+    --text3: #9E9B96;
+    --accent: #2D5A27;
+    --accent-light: #EAF3E8;
+    --accent-text: #1E3E1A;
+    --blue: #1D3557;
+    --blue-light: #E8EDF3;
+    --blue-text: #1D3557;
+    --amber: #92400E;
+    --amber-light: #FEF3C7;
+    --amber-text: #78350F;
+    --red: #991B1B;
+    --red-light: #FEE2E2;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  #app {
+    padding-bottom: calc(72px + var(--safe-bottom));
+    min-height: 100vh;
+    min-height: -webkit-fill-available;
+  }
+
+  /* Top bar */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: calc(var(--safe-top) + 14px) 20px 14px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .topbar-title {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.4px;
+    color: var(--text);
+  }
+  .topbar-sub {
+    font-size: 13px;
+    color: var(--text3);
+    margin-top: 1px;
+  }
+
+  /* Tab bar */
+  .tabbar {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding-bottom: var(--safe-bottom);
+    z-index: 50;
+  }
+  .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 10px 4px 8px;
+    font-size: 11px;
+    color: var(--text3);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: color 0.15s;
+  }
+  .tab.active { color: var(--accent); }
+  .tab svg { width: 24px; height: 24px; }
+
+  /* Screens */
+  .screen { display: none; padding: 0 0 1rem; }
+  .screen.active { display: block; }
+
+  /* Section header */
+  .sec-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 10px;
+  }
+  .sec-title { font-size: 13px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    margin: 0 16px 10px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .card-row {
+    display: flex;
+    align-items: center;
+    padding: 14px 16px;
+    gap: 12px;
+  }
+  .card-row + .card-row {
+    border-top: 1px solid var(--border);
+  }
+
+  /* Badges */
+  .badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    display: inline-block;
+    letter-spacing: 0.2px;
+  }
+  .badge-green { background: var(--accent-light); color: var(--accent-text); }
+  .badge-blue { background: var(--blue-light); color: var(--blue-text); }
+  .badge-amber { background: var(--amber-light); color: var(--amber-text); }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 11px 18px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border2);
+    background: var(--surface);
+    color: var(--text);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.12s, transform 0.1s;
+    -webkit-appearance: none;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .btn-primary:active { background: #234820; }
+  .btn-icon {
+    padding: 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.12s;
+  }
+  .btn-icon:active { background: var(--border); }
+  .btn-del {
+    background: var(--red-light);
+    border-color: rgba(153,27,27,0.2);
+    color: var(--red);
+    padding: 6px 10px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+  }
+
+  /* Full-width button */
+  .btn-full { width: 100%; justify-content: center; margin: 4px 16px; width: calc(100% - 32px); }
+
+  /* Calendar */
+  .cal-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 8px;
+  }
+  .cal-month {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: -0.3px;
+  }
+  .cal-nav-btns { display: flex; gap: 8px; }
+  .cal-grid { padding: 0 12px; }
+  .cal-days-row {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    margin-bottom: 4px;
+  }
+  .cal-day-label {
+    text-align: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text3);
+    padding: 4px 0;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+  .cal-cells {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 3px;
+  }
+  .cal-cell {
+    aspect-ratio: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 14px;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.12s;
+  }
+  .cal-cell:active { background: var(--surface2); }
+  .cal-cell.empty { cursor: default; }
+  .cal-cell.today { background: var(--blue-light); color: var(--blue-text); font-weight: 600; }
+  .cal-cell.selected { background: var(--accent); color: #fff; font-weight: 600; }
+  .cal-cell.selected.today { background: var(--accent); }
+  .cal-cell.has-dot::after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  .cal-cell.selected.has-dot::after { background: rgba(255,255,255,0.7); }
+
+  /* Day sessions panel */
+  .day-panel {
+    margin: 12px 16px 0;
+    background: var(--surface);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .day-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .day-panel-title { font-size: 14px; font-weight: 600; color: var(--text); }
+  .session-item {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+  }
+  .session-item:first-child { border-top: none; }
+  .session-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .session-meta { display: flex; gap: 12px; margin-top: 6px; align-items: center; }
+  .session-meta-item { font-size: 13px; color: var(--text2); display: flex; align-items: center; gap: 4px; }
+  .empty-state {
+    text-align: center;
+    padding: 28px 16px;
+    color: var(--text3);
+    font-size: 14px;
+  }
+  .empty-icon { font-size: 28px; display: block; margin-bottom: 8px; }
+
+  /* Metrics */
+  .metrics-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    padding: 0 16px;
+    margin-bottom: 16px;
+  }
+  .metric-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+  }
+  .metric-label { font-size: 12px; color: var(--text3); font-weight: 500; margin-bottom: 4px; }
+  .metric-value { font-size: 26px; font-weight: 600; letter-spacing: -0.5px; font-family: 'DM Mono', monospace; }
+  .metric-value.green { color: var(--accent); }
+  .metric-value.blue { color: var(--blue); }
+
+  /* Course/student list */
+  .list-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+  }
+  .list-item + .list-item { border-top: 1px solid var(--border); }
+  .list-item-name { font-size: 15px; font-weight: 500; color: var(--text); }
+  .list-item-sub { font-size: 13px; color: var(--text3); margin-top: 2px; }
+
+  /* Divider */
+  .divider { height: 1px; background: var(--border); margin: 8px 16px; }
+  .spacer { height: 16px; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 20px calc(20px + var(--safe-bottom));
+    width: 100%;
+    max-width: 430px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.25s cubic-bezier(0.32,0.72,0,1);
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: var(--border2);
+    border-radius: 2px;
+    margin: 0 auto 16px;
+  }
+  .modal-title { font-size: 17px; font-weight: 600; margin-bottom: 20px; letter-spacing: -0.3px; }
+
+  /* Form */
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 13px; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-sm);
+    font-size: 16px;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    -webkit-appearance: none;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus { border-color: var(--accent); }
+  .field select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24'%3E%3Cpath stroke='%236B6760' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+  .form-row { display: flex; gap: 10px; }
+  .form-row .field { flex: 1; }
+  .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .modal-actions .btn { flex: 1; justify-content: center; }
+
+  /* Chips */
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .chip {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border2);
+    background: var(--bg);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all 0.12s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .chip.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* Summary breakdown table */
+  .breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 11px 16px;
+    border-top: 1px solid var(--border);
+  }
+  .breakdown-row:first-child { border-top: none; }
+  .breakdown-name { font-size: 14px; color: var(--text); }
+  .breakdown-right { text-align: right; }
+  .breakdown-income { font-size: 15px; font-weight: 600; font-family: 'DM Mono', monospace; color: var(--accent); }
+  .breakdown-hours { font-size: 12px; color: var(--text3); }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: calc(80px + var(--safe-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: var(--bg);
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+    white-space: nowrap;
+    z-index: 300;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* SVG icons inline */
+  .icon { width: 18px; height: 18px; display: inline-block; vertical-align: middle; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+</style>
+</head>
+<body>
+
+<div id="app">
+
+  <!-- CALENDAR SCREEN -->
+  <div id="screen-calendar" class="screen active">
+    <div class="topbar">
+      <div class="topbar-title">Tutor Tracker</div>
+      <div class="topbar-sub" id="cal-topbar-sub">Loading…</div>
+    </div>
+
+    <div class="cal-nav">
+      <span class="cal-month" id="cal-month-label"></span>
+      <div class="cal-nav-btns">
+        <button class="btn-icon" onclick="changeMonth(-1)" aria-label="Previous month">
+          <svg class="icon" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <button class="btn-icon" onclick="changeMonth(1)" aria-label="Next month">
+          <svg class="icon" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="cal-grid">
+      <div class="cal-days-row" id="cal-day-labels"></div>
+      <div class="cal-cells" id="cal-cells"></div>
+    </div>
+
+    <div class="day-panel" id="day-panel">
+      <div class="day-panel-header">
+        <span class="day-panel-title" id="day-panel-title">Sessions</span>
+        <button class="btn btn-primary" style="padding:7px 14px;font-size:13px" onclick="openAddSession()">
+          <svg class="icon" style="width:15px;height:15px" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add
+        </button>
+      </div>
+      <div id="day-sessions-list"></div>
+    </div>
+  </div>
+
+  <!-- COURSES & STUDENTS SCREEN -->
+  <div id="screen-setup" class="screen">
+    <div class="topbar">
+      <div class="topbar-title">Setup</div>
+      <div class="topbar-sub">Courses, rates & students</div>
+    </div>
+
+    <div class="sec-header">
+      <span class="sec-title">Courses</span>
+    </div>
+    <div class="card" id="courses-list-container">
+      <div class="empty-state" id="courses-empty">No courses yet.</div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="openAddCourse()">
+      <svg class="icon" style="width:16px;height:16px" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add course
+    </button>
+
+    <div class="spacer"></div>
+
+    <div class="sec-header">
+      <span class="sec-title">Students</span>
+    </div>
+    <div class="card" id="students-list-container">
+      <div class="empty-state" id="students-empty">No students yet.</div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="openAddStudent()">
+      <svg class="icon" style="width:16px;height:16px" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      Add student
+    </button>
+  </div>
+
+  <!-- SUMMARY SCREEN -->
+  <div id="screen-summary" class="screen">
+    <div class="topbar">
+      <div class="topbar-title">Summary</div>
+      <div class="topbar-sub" id="summary-period-label">This month</div>
+    </div>
+
+    <div class="spacer"></div>
+    <div class="metrics-row" id="summary-metrics"></div>
+
+    <div class="sec-header"><span class="sec-title">By course</span></div>
+    <div class="card" id="summary-by-course"></div>
+
+    <div class="sec-header" style="margin-top:8px"><span class="sec-title">Year to date <span id="ytd-year"></span></span></div>
+    <div class="metrics-row" id="ytd-metrics"></div>
+
+    <div class="sec-header" style="margin-top:4px"><span class="sec-title">Monthly breakdown</span></div>
+    <div class="card" id="monthly-breakdown"></div>
+  </div>
+
+</div>
+
+<!-- TAB BAR -->
+<nav class="tabbar">
+  <button class="tab active" id="tab-calendar" onclick="switchTab('calendar')">
+    <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    Calendar
+  </button>
+  <button class="tab" id="tab-setup" onclick="switchTab('setup')">
+    <svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    Setup
+  </button>
+  <button class="tab" id="tab-summary" onclick="switchTab('summary')">
+    <svg class="icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Summary
+  </button>
+</nav>
+
+<!-- SESSION MODAL -->
+<div class="modal-overlay" id="modal-session">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <p class="modal-title" id="session-modal-title">Add session</p>
+    <div class="field">
+      <label>Course</label>
+      <select id="f-course"></select>
+    </div>
+    <div class="field">
+      <label>Student</label>
+      <select id="f-student"></select>
+    </div>
+    <div class="form-row">
+      <div class="field">
+        <label>Hours</label>
+        <input type="number" id="f-hours" value="1" min="0.25" step="0.25">
+      </div>
+      <div class="field">
+        <label>Rate override ($)</label>
+        <input type="number" id="f-rate-override" placeholder="Auto">
+      </div>
+    </div>
+    <div class="field">
+      <label>Notes (optional)</label>
+      <input type="text" id="f-notes" placeholder="e.g. Chapter 5 review">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-session')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveSession()">Save session</button>
+    </div>
+  </div>
+</div>
+
+<!-- COURSE MODAL -->
+<div class="modal-overlay" id="modal-course">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <p class="modal-title">Add course</p>
+    <div class="field">
+      <label>Course name</label>
+      <input type="text" id="c-name" placeholder="e.g. Math Grade 10">
+    </div>
+    <div class="field">
+      <label>Hourly rate ($)</label>
+      <input type="number" id="c-rate" placeholder="e.g. 50" min="0" step="0.5">
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-course')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveCourse()">Save course</button>
+    </div>
+  </div>
+</div>
+
+<!-- STUDENT MODAL -->
+<div class="modal-overlay" id="modal-student">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <p class="modal-title">Add student</p>
+    <div class="field">
+      <label>Student name</label>
+      <input type="text" id="st-name" placeholder="e.g. Alex Kim">
+    </div>
+    <div class="field">
+      <label>Courses</label>
+      <div class="chips" id="st-course-chips"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-student')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveStudent()">Save student</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ──────────────────────────────────────────────────────────────────
+const STORAGE_KEY = 'tutor_tracker_v1';
+
+let S = {
+  courses: [],
+  students: [],
+  sessions: [],
+  year: new Date().getFullYear(),
+  month: new Date().getMonth(),
+  day: new Date().getDate()
+};
+
+function load() {
+  try {
+    const d = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    S.courses  = d.courses  || [];
+    S.students = d.students || [];
+    S.sessions = d.sessions || [];
+  } catch(e) {}
+}
+
+function persist() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({
+    courses: S.courses, students: S.students, sessions: S.sessions
+  }));
+}
+
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6); }
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// ── Navigation ─────────────────────────────────────────────────────────────
+let currentTab = 'calendar';
+
+function switchTab(tab) {
+  document.getElementById('screen-' + currentTab).classList.remove('active');
+  document.getElementById('tab-' + currentTab).classList.remove('active');
+  currentTab = tab;
+  document.getElementById('screen-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'summary') renderSummary();
+  if (tab === 'setup') renderSetup();
+  if (tab === 'calendar') renderCalendar();
+}
+
+// ── Calendar ───────────────────────────────────────────────────────────────
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DAYS_SHORT = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+
+function renderCalendar() {
+  const { year: y, month: m, day: selDay } = S;
+  const today = new Date();
+  document.getElementById('cal-month-label').textContent = MONTHS[m] + ' ' + y;
+  document.getElementById('cal-topbar-sub').textContent = monthIncome(y, m);
+
+  // Day labels
+  document.getElementById('cal-day-labels').innerHTML = DAYS_SHORT.map(d =>
+    `<div class="cal-day-label">${d}</div>`).join('');
+
+  // Cells
+  const firstDow = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const sessionDays = new Set(
+    S.sessions.filter(s => s.year === y && s.month === m).map(s => s.day)
+  );
+
+  let html = '';
+  for (let i = 0; i < firstDow; i++) html += `<div class="cal-cell empty"></div>`;
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = today.getFullYear()===y && today.getMonth()===m && today.getDate()===d;
+    const isSel   = d === selDay;
+    const hasDot  = sessionDays.has(d);
+    let cls = 'cal-cell';
+    if (isToday) cls += ' today';
+    if (isSel)   cls += ' selected';
+    if (hasDot)  cls += ' has-dot';
+    html += `<div class="${cls}" onclick="selectDay(${d})">${d}</div>`;
+  }
+  document.getElementById('cal-cells').innerHTML = html;
+  renderDayPanel();
+}
+
+function monthIncome(y, m) {
+  let total = 0;
+  S.sessions.filter(s => s.year===y && s.month===m).forEach(s => {
+    const c = S.courses.find(c => c.id === s.courseId);
+    const rate = s.rateOverride || (c ? c.rate : 0);
+    total += rate * s.hours;
+  });
+  return total > 0 ? `$${total.toFixed(0)} this month` : 'No sessions yet';
+}
+
+function selectDay(d) {
+  S.day = d;
+  renderCalendar();
+}
+
+function changeMonth(dir) {
+  S.month += dir;
+  if (S.month < 0)  { S.month = 11; S.year--; }
+  if (S.month > 11) { S.month = 0;  S.year++; }
+  S.day = 1;
+  renderCalendar();
+}
+
+function renderDayPanel() {
+  const { year: y, month: m, day: d } = S;
+  const dayName = new Date(y, m, d).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+  document.getElementById('day-panel-title').textContent = dayName;
+
+  const items = S.sessions.filter(s => s.year===y && s.month===m && s.day===d);
+  const el = document.getElementById('day-sessions-list');
+
+  if (!items.length) {
+    el.innerHTML = `<div class="empty-state"><span class="empty-icon">📋</span>No sessions. Tap Add to log one.</div>`;
+    return;
+  }
+
+  el.innerHTML = items.map(s => {
+    const course  = S.courses.find(c => c.id === s.courseId);
+    const student = S.students.find(st => st.id === s.studentId);
+    const rate    = s.rateOverride || (course ? course.rate : 0);
+    const earned  = (rate * s.hours).toFixed(2);
+    return `<div class="session-item">
+      <div class="session-top">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+          <span class="badge badge-blue">${course?.name || '?'}</span>
+          <span style="font-size:14px;font-weight:500">${student?.name || '?'}</span>
+        </div>
+        <button class="btn btn-del" onclick="deleteSession('${s.id}')">
+          <svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>
+      <div class="session-meta">
+        <span class="session-meta-item">
+          <svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${s.hours}h
+        </span>
+        <span class="session-meta-item" style="color:var(--accent);font-weight:600">$${earned}</span>
+        ${s.notes ? `<span class="session-meta-item" style="font-style:italic">${s.notes}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Session CRUD ───────────────────────────────────────────────────────────
+function openAddSession() {
+  if (!S.courses.length) { toast('Add a course first'); switchTab('setup'); return; }
+  if (!S.students.length) { toast('Add a student first'); switchTab('setup'); return; }
+
+  document.getElementById('f-course').innerHTML =
+    S.courses.map(c => `<option value="${c.id}">${c.name} — $${c.rate}/h</option>`).join('');
+  document.getElementById('f-student').innerHTML =
+    S.students.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  document.getElementById('f-hours').value = 1;
+  document.getElementById('f-rate-override').value = '';
+  document.getElementById('f-notes').value = '';
+
+  const { year: y, month: m, day: d } = S;
+  const label = new Date(y, m, d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  document.getElementById('session-modal-title').textContent = `Add session — ${label}`;
+  openModal('modal-session');
+}
+
+function saveSession() {
+  const courseId  = document.getElementById('f-course').value;
+  const studentId = document.getElementById('f-student').value;
+  const hours     = parseFloat(document.getElementById('f-hours').value);
+  const rateOverride = parseFloat(document.getElementById('f-rate-override').value) || null;
+  const notes     = document.getElementById('f-notes').value.trim();
+
+  if (!courseId || !studentId || !hours || hours <= 0) { toast('Fill in all required fields'); return; }
+
+  S.sessions.push({
+    id: uid(),
+    year: S.year, month: S.month, day: S.day,
+    courseId, studentId, hours, rateOverride, notes
+  });
+  persist();
+  closeModal('modal-session');
+  renderCalendar();
+  toast('Session saved');
+}
+
+function deleteSession(id) {
+  if (!confirm('Delete this session?')) return;
+  S.sessions = S.sessions.filter(s => s.id !== id);
+  persist();
+  renderCalendar();
+  toast('Session deleted');
+}
+
+// ── Course CRUD ────────────────────────────────────────────────────────────
+function openAddCourse() {
+  document.getElementById('c-name').value = '';
+  document.getElementById('c-rate').value = '';
+  openModal('modal-course');
+}
+
+function saveCourse() {
+  const name = document.getElementById('c-name').value.trim();
+  const rate = parseFloat(document.getElementById('c-rate').value);
+  if (!name || !rate || rate <= 0) { toast('Enter a name and rate'); return; }
+  S.courses.push({ id: uid(), name, rate });
+  persist();
+  closeModal('modal-course');
+  renderSetup();
+  toast('Course added');
+}
+
+function deleteCourse(id) {
+  if (!confirm('Delete this course? Sessions using it will still be saved.')) return;
+  S.courses = S.courses.filter(c => c.id !== id);
+  persist();
+  renderSetup();
+  toast('Course deleted');
+}
+
+// ── Student CRUD ───────────────────────────────────────────────────────────
+let selectedChips = [];
+
+function openAddStudent() {
+  document.getElementById('st-name').value = '';
+  selectedChips = [];
+  document.getElementById('st-course-chips').innerHTML =
+    S.courses.map(c =>
+      `<button class="chip" id="chip-${c.id}" onclick="toggleChip('${c.id}')">${c.name}</button>`
+    ).join('');
+  openModal('modal-student');
+}
+
+function toggleChip(id) {
+  const i = selectedChips.indexOf(id);
+  if (i >= 0) selectedChips.splice(i, 1); else selectedChips.push(id);
+  document.querySelectorAll('[id^="chip-"]').forEach(el => {
+    const cid = el.id.replace('chip-', '');
+    el.classList.toggle('on', selectedChips.includes(cid));
+  });
+}
+
+function saveStudent() {
+  const name = document.getElementById('st-name').value.trim();
+  if (!name) { toast('Enter a name'); return; }
+  S.students.push({ id: uid(), name, courses: [...selectedChips] });
+  persist();
+  closeModal('modal-student');
+  renderSetup();
+  toast('Student added');
+}
+
+function deleteStudent(id) {
+  if (!confirm('Delete this student?')) return;
+  S.students = S.students.filter(s => s.id !== id);
+  persist();
+  renderSetup();
+  toast('Student deleted');
+}
+
+// ── Setup screen ───────────────────────────────────────────────────────────
+function renderSetup() {
+  const cl = document.getElementById('courses-list-container');
+  if (!S.courses.length) {
+    cl.innerHTML = `<div class="empty-state">No courses yet. Add one below.</div>`;
+  } else {
+    cl.innerHTML = S.courses.map(c => `
+      <div class="list-item">
+        <div>
+          <div class="list-item-name">${c.name}</div>
+          <div class="list-item-sub">$${c.rate} / hour</div>
+        </div>
+        <button class="btn btn-del" onclick="deleteCourse('${c.id}')">
+          <svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>`).join('');
+  }
+
+  const sl = document.getElementById('students-list-container');
+  if (!S.students.length) {
+    sl.innerHTML = `<div class="empty-state">No students yet. Add one below.</div>`;
+  } else {
+    sl.innerHTML = S.students.map(st => {
+      const courseNames = (st.courses || [])
+        .map(cid => S.courses.find(c => c.id === cid)?.name)
+        .filter(Boolean).join(', ') || 'No courses assigned';
+      return `<div class="list-item">
+        <div>
+          <div class="list-item-name">${st.name}</div>
+          <div class="list-item-sub">${courseNames}</div>
+        </div>
+        <button class="btn btn-del" onclick="deleteStudent('${st.id}')">
+          <svg class="icon" style="width:14px;height:14px" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+        </button>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ── Summary screen ─────────────────────────────────────────────────────────
+function renderSummary() {
+  const { year: y, month: m } = S;
+  document.getElementById('summary-period-label').textContent = MONTHS[m] + ' ' + y;
+  document.getElementById('ytd-year').textContent = y;
+
+  const monthSessions = S.sessions.filter(s => s.year===y && s.month===m);
+  let mHours = 0, mIncome = 0;
+  const byCourse = {};
+
+  monthSessions.forEach(s => {
+    const course = S.courses.find(c => c.id === s.courseId);
+    const rate   = s.rateOverride || (course ? course.rate : 0);
+    const earned = rate * s.hours;
+    mHours  += s.hours;
+    mIncome += earned;
+    if (!byCourse[s.courseId]) byCourse[s.courseId] = { name: course?.name || 'Unknown', hours: 0, income: 0 };
+    byCourse[s.courseId].hours  += s.hours;
+    byCourse[s.courseId].income += earned;
+  });
+
+  document.getElementById('summary-metrics').innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">Hours this month</div>
+      <div class="metric-value blue">${mHours.toFixed(1)}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Income this month</div>
+      <div class="metric-value green">$${mIncome.toFixed(0)}</div>
+    </div>`;
+
+  const bc = document.getElementById('summary-by-course');
+  const entries = Object.values(byCourse);
+  if (!entries.length) {
+    bc.innerHTML = `<div class="empty-state">No sessions this month.</div>`;
+  } else {
+    bc.innerHTML = entries.sort((a,b) => b.income - a.income).map(e => `
+      <div class="breakdown-row">
+        <span class="breakdown-name">${e.name}</span>
+        <div class="breakdown-right">
+          <div class="breakdown-income">$${e.income.toFixed(0)}</div>
+          <div class="breakdown-hours">${e.hours.toFixed(1)}h</div>
+        </div>
+      </div>`).join('');
+  }
+
+  // YTD
+  const ytd = S.sessions.filter(s => s.year===y);
+  let ytdH = 0, ytdI = 0;
+  ytd.forEach(s => {
+    const c    = S.courses.find(c => c.id === s.courseId);
+    const rate = s.rateOverride || (c ? c.rate : 0);
+    ytdH += s.hours; ytdI += rate * s.hours;
+  });
+  document.getElementById('ytd-metrics').innerHTML = `
+    <div class="metric-card">
+      <div class="metric-label">Total hours ${y}</div>
+      <div class="metric-value blue">${ytdH.toFixed(1)}</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-label">Total income ${y}</div>
+      <div class="metric-value green">$${ytdI.toFixed(0)}</div>
+    </div>`;
+
+  // Monthly breakdown
+  const byMonth = {};
+  S.sessions.filter(s => s.year===y).forEach(s => {
+    const c    = S.courses.find(c => c.id === s.courseId);
+    const rate = s.rateOverride || (c ? c.rate : 0);
+    if (!byMonth[s.month]) byMonth[s.month] = { hours: 0, income: 0 };
+    byMonth[s.month].hours  += s.hours;
+    byMonth[s.month].income += rate * s.hours;
+  });
+  const mbEl = document.getElementById('monthly-breakdown');
+  const months = Object.keys(byMonth).map(Number).sort((a,b)=>b-a);
+  if (!months.length) {
+    mbEl.innerHTML = `<div class="empty-state">No sessions recorded yet.</div>`;
+  } else {
+    mbEl.innerHTML = months.map(mn => `
+      <div class="breakdown-row">
+        <span class="breakdown-name">${MONTHS[mn]}</span>
+        <div class="breakdown-right">
+          <div class="breakdown-income">$${byMonth[mn].income.toFixed(0)}</div>
+          <div class="breakdown-hours">${byMonth[mn].hours.toFixed(1)}h</div>
+        </div>
+      </div>`).join('');
+  }
+}
+
+// ── Modal helpers ──────────────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// Close modal on overlay tap
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ── Boot ───────────────────────────────────────────────────────────────────
+load();
+renderCalendar();
+renderSetup();
+</script>
+</body>
+</html>
