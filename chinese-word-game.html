@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🐼 中文认字游戏</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --p50:#EEEDFE;--p600:#534AB7;--p800:#3C3489;
+  --t50:#E1F5EE;--t600:#0F6E56;--t800:#085041;
+  --r50:#FCEBEB;--r600:#A32D2D;--r800:#791F1F;
+  --a50:#FAEEDA;--a600:#854F0B;
+  --g100:#f7f6f3;--g200:#eceae4;--g400:#b4b2a9;--g600:#5f5e5a;--g900:#1a1a18;
+}
+body {
+  font-family:'Segoe UI','Helvetica Neue',Arial,sans-serif;
+  background:var(--g100); min-height:100vh;
+  display:flex; justify-content:center; padding:2rem 1rem;
+  color:var(--g900);
+}
+#app { width:100%; max-width:500px; background:#fff; border-radius:20px; box-shadow:0 4px 32px rgba(0,0,0,0.09); overflow:hidden; height:fit-content; }
+
+/* header */
+.hdr { background:var(--p600); padding:1.4rem 1.75rem; display:flex; align-items:center; gap:12px; }
+.hdr h1 { font-size:19px; font-weight:700; color:#fff; }
+.hdr p  { font-size:12px; color:rgba(255,255,255,.7); margin-top:2px; }
+
+/* screens */
+.screen { display:none; padding:1.75rem; }
+.screen.active { display:block; }
+
+/* chips */
+.slabel { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--g400); margin-bottom:10px; }
+.chips  { display:flex; flex-wrap:wrap; gap:8px; min-height:44px; margin-bottom:14px; padding:6px 0; }
+.chip   { display:inline-flex; align-items:center; gap:6px; background:var(--p50); color:#3C3489; border-radius:100px; padding:6px 14px 6px 16px; font-size:20px; font-weight:600; }
+.chip-x { background:none; border:none; cursor:pointer; color:#AFA9EC; font-size:18px; line-height:1; padding:0; }
+.chip-x:hover { color:var(--p600); }
+
+/* add row */
+.add-row { display:flex; gap:8px; margin-bottom:20px; }
+.add-row input { flex:1; font-size:22px; font-family:inherit; padding:10px 14px; border-radius:10px; border:1.5px solid var(--g200); background:var(--g100); color:var(--g900); outline:none; }
+.add-row input:focus { border-color:var(--p600); background:#fff; }
+.add-row input::placeholder { font-size:14px; color:var(--g400); }
+.add-row .add-btn { padding:10px 18px; border-radius:10px; border:1.5px solid var(--g200); background:#fff; color:var(--g900); font-size:20px; cursor:pointer; }
+.add-btn:hover { border-color:var(--p600); background:var(--p50); }
+
+/* tip */
+.tipbox { background:var(--a50); border-radius:10px; padding:12px 16px; font-size:13px; color:var(--a600); margin-bottom:20px; line-height:1.6; }
+
+/* start btn */
+.start-btn { width:100%; padding:15px; border-radius:14px; border:none; background:var(--p600); color:#fff; font-size:16px; font-weight:600; cursor:pointer; }
+.start-btn:hover:not([disabled]) { background:var(--p800); }
+.start-btn[disabled] { background:var(--g200); color:var(--g400); cursor:not-allowed; }
+
+/* api key section */
+.key-section { background:var(--a50); border-radius:10px; padding:14px 16px; margin-bottom:20px; font-size:13px; color:var(--a600); line-height:1.6; }
+.key-section strong { font-weight:700; }
+.key-row { display:flex; gap:8px; margin-top:10px; }
+.key-row input { flex:1; padding:8px 12px; border-radius:8px; border:1.5px solid #EF9F27; font-size:13px; font-family:monospace; color:var(--g900); background:#fff; outline:none; }
+.key-row button { padding:8px 14px; border-radius:8px; border:none; background:var(--p600); color:#fff; font-size:13px; cursor:pointer; white-space:nowrap; }
+.key-row button:hover { background:var(--p800); }
+.key-saved { font-size:12px; color:var(--t600); font-weight:600; margin-top:6px; }
+
+/* loading */
+.load-c { text-align:center; padding:2.5rem 0; }
+.spin { font-size:56px; display:inline-block; animation:spin 1.1s linear infinite; margin-bottom:14px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.load-c h2 { font-size:18px; font-weight:600; margin-bottom:6px; }
+.load-c p  { font-size:14px; color:var(--g600); }
+
+/* quiz */
+.qmeta { display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; font-size:13px; color:var(--g400); }
+.qscore { font-weight:600; color:var(--p600); }
+.prog-wrap { background:var(--g200); border-radius:100px; height:6px; margin-bottom:18px; overflow:hidden; }
+.prog-fill { height:100%; background:var(--p600); border-radius:100px; transition:width .4s ease; }
+.pic-card { background:var(--g100); border-radius:16px; padding:1.75rem; text-align:center; margin-bottom:18px; border:1.5px solid var(--g200); }
+.pic-emoji { font-size:90px; line-height:1; margin-bottom:10px; display:block; }
+.pic-desc  { font-size:13px; color:var(--g400); }
+.pinyin-display { text-align:center; font-size:32px; font-weight:600; color:var(--p600); letter-spacing:2px; margin-bottom:10px; min-height:42px; }
+.q-inst { text-align:center; font-size:16px; font-weight:600; margin-bottom:14px; }
+.opts { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px; }
+.opt { padding:18px 10px; border-radius:14px; border:2px solid var(--g200); background:#fff; font-size:32px; font-weight:700; cursor:pointer; color:var(--g900); transition:border-color .12s,background .12s; }
+.opt:hover:not([disabled]) { border-color:var(--p600); background:var(--p50); }
+.opt[disabled] { cursor:default; }
+.opt.correct { border-color:var(--t600); background:var(--t50); color:var(--t800); }
+.opt.wrong   { border-color:var(--r600); background:var(--r50);  color:var(--r800); }
+.fb { display:none; border-radius:10px; padding:10px 14px; font-size:14px; font-weight:500; line-height:1.4; text-align:center; margin-bottom:14px; }
+.fb.correct { display:block; background:var(--t50); color:var(--t600); }
+.fb.wrong   { display:block; background:var(--r50); color:var(--r600); }
+.next-btn { display:none; width:100%; padding:13px; border-radius:14px; border:1.5px solid var(--g200); background:#fff; color:var(--g900); font-size:15px; font-weight:500; cursor:pointer; }
+.next-btn:hover { background:var(--g100); }
+.next-btn.show { display:block; }
+
+/* result */
+.res-hero { text-align:center; padding:1.5rem; background:var(--g100); border-radius:16px; margin-bottom:18px; }
+.res-trophy { font-size:64px; margin-bottom:8px; display:block; }
+.res-score  { font-size:48px; font-weight:700; color:var(--p600); line-height:1; }
+.res-sub    { font-size:14px; color:var(--g600); margin-top:4px; }
+.res-list   { margin-bottom:22px; }
+.res-item   { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--g200); }
+.res-item:last-child { border-bottom:none; }
+.ri-word { font-size:24px; font-weight:700; line-height:1; }
+.ri-meta { font-size:12px; color:var(--g400); margin-top:2px; }
+.again-btn { width:100%; padding:15px; border-radius:14px; border:none; background:var(--p600); color:#fff; font-size:16px; font-weight:600; cursor:pointer; }
+.again-btn:hover { background:var(--p800); }
+
+@media(max-width:480px){
+  body { padding:0; }
+  #app { border-radius:0; box-shadow:none; min-height:100vh; }
+  .opt { font-size:26px; padding:14px 8px; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div class="hdr">
+    <span style="font-size:38px">🐼</span>
+    <div>
+      <h1>中文认字游戏</h1>
+      <p>Chinese Word Recognition Game for Kids</p>
+    </div>
+  </div>
+
+  <!-- SETUP -->
+  <div id="setup-screen" class="screen active">
+
+    <div class="key-section" id="key-section">
+      <strong>🔑 Optional: Anthropic API Key</strong> — only needed for words not in the built-in list.<br>
+      Built-in words (猫 狗 鱼 苹果 etc.) work with <strong>no key needed</strong>.
+      <div class="key-row">
+        <input type="password" id="key-input" placeholder="sk-ant-..." />
+        <button onclick="saveKey()">Save Key</button>
+      </div>
+      <div class="key-saved" id="key-saved" style="display:none">✅ Key saved!</div>
+    </div>
+
+    <div class="slabel">Your words</div>
+    <div class="chips" id="chips">
+      <span style="font-size:13px;color:var(--g400)">Add words below to start!</span>
+    </div>
+
+    <div class="add-row">
+      <input id="wi" type="text" placeholder="Type e.g. 猫, 苹果, 太阳" maxlength="6" />
+      <button class="add-btn" onclick="addWord()">＋</button>
+    </div>
+
+    <div class="tipbox">
+      <strong>Built-in words (no key needed):</strong><br>
+      猫 狗 鱼 鸟 马 牛 猪 羊 兔 熊 虎 象 苹果 香蕉 西瓜 草莓 水 火 书 月亮 太阳 花 树 家 车 飞机 山 雨 雪 球 心 星 饭 蛋糕 笔 门 床 眼睛 手
+    </div>
+
+    <button class="start-btn" id="start-btn" onclick="startGame()" disabled>
+      Start Game 🎮
+    </button>
+  </div>
+
+  <!-- LOADING -->
+  <div id="loading-screen" class="screen">
+    <div class="load-c">
+      <div class="spin">🎨</div>
+      <h2>Preparing your game…</h2>
+      <p id="load-msg">Looking up pictures for your words</p>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quiz-screen" class="screen">
+    <div class="qmeta">
+      <span id="q-num">Question 1 of 5</span>
+      <span class="qscore" id="q-score">⭐ 0</span>
+    </div>
+    <div class="prog-wrap"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+    <div class="pinyin-display" id="pinyin-display"></div>
+    <div class="pic-card">
+      <span class="pic-emoji" id="pic-emoji">🐱</span>
+      <div class="pic-desc" id="pic-desc"></div>
+    </div>
+    <div class="q-inst">Which Chinese word matches? 👇</div>
+    <div class="opts" id="opts"></div>
+    <div class="fb" id="fb"></div>
+    <button class="next-btn" id="next-btn" onclick="nextQ()">Next →</button>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result-screen" class="screen">
+    <div class="res-hero">
+      <span class="res-trophy" id="r-trophy">🌟</span>
+      <div class="res-score" id="r-score">0/0</div>
+      <div class="res-sub" id="r-sub"></div>
+    </div>
+    <div class="res-list" id="r-list"></div>
+    <button class="again-btn" onclick="restart()">Play Again 🔄</button>
+  </div>
+
+</div>
+<script>
+const DICT = {
+  '猫':{emoji:'🐱',desc:'a fluffy cat',pinyin:'māo'},
+  '狗':{emoji:'🐶',desc:'a happy dog',pinyin:'gǒu'},
+  '鱼':{emoji:'🐟',desc:'a swimming fish',pinyin:'yú'},
+  '鸟':{emoji:'🐦',desc:'a little bird',pinyin:'niǎo'},
+  '马':{emoji:'🐴',desc:'a horse',pinyin:'mǎ'},
+  '牛':{emoji:'🐄',desc:'a cow',pinyin:'niú'},
+  '猪':{emoji:'🐷',desc:'a pink pig',pinyin:'zhū'},
+  '羊':{emoji:'🐑',desc:'a fluffy sheep',pinyin:'yáng'},
+  '兔':{emoji:'🐰',desc:'a white rabbit',pinyin:'tù'},
+  '熊':{emoji:'🐻',desc:'a big bear',pinyin:'xióng'},
+  '虎':{emoji:'🐯',desc:'a striped tiger',pinyin:'hǔ'},
+  '象':{emoji:'🐘',desc:'a big elephant',pinyin:'xiàng'},
+  '猴':{emoji:'🐒',desc:'a playful monkey',pinyin:'hóu'},
+  '鸭':{emoji:'🦆',desc:'a yellow duck',pinyin:'yā'},
+  '蛙':{emoji:'🐸',desc:'a green frog',pinyin:'wā'},
+  '苹果':{emoji:'🍎',desc:'a red apple',pinyin:'píngguǒ'},
+  '香蕉':{emoji:'🍌',desc:'a yellow banana',pinyin:'xiāngjiāo'},
+  '橙子':{emoji:'🍊',desc:'an orange',pinyin:'chéngzi'},
+  '葡萄':{emoji:'🍇',desc:'purple grapes',pinyin:'pútao'},
+  '草莓':{emoji:'🍓',desc:'a red strawberry',pinyin:'cǎoméi'},
+  '西瓜':{emoji:'🍉',desc:'a watermelon',pinyin:'xīguā'},
+  '桃':{emoji:'🍑',desc:'a peach',pinyin:'táo'},
+  '梨':{emoji:'🍐',desc:'a green pear',pinyin:'lí'},
+  '水':{emoji:'💧',desc:'a drop of water',pinyin:'shuǐ'},
+  '火':{emoji:'🔥',desc:'a flame of fire',pinyin:'huǒ'},
+  '书':{emoji:'📚',desc:'a stack of books',pinyin:'shū'},
+  '月亮':{emoji:'🌙',desc:'the crescent moon',pinyin:'yuèliang'},
+  '太阳':{emoji:'☀️',desc:'the bright sun',pinyin:'tàiyáng'},
+  '花':{emoji:'🌸',desc:'a pretty flower',pinyin:'huā'},
+  '树':{emoji:'🌳',desc:'a big tree',pinyin:'shù'},
+  '家':{emoji:'🏠',desc:'a cozy house',pinyin:'jiā'},
+  '车':{emoji:'🚗',desc:'a red car',pinyin:'chē'},
+  '飞机':{emoji:'✈️',desc:'an airplane',pinyin:'fēijī'},
+  '船':{emoji:'⛵',desc:'a sailing boat',pinyin:'chuán'},
+  '山':{emoji:'⛰️',desc:'a tall mountain',pinyin:'shān'},
+  '雨':{emoji:'🌧️',desc:'falling rain',pinyin:'yǔ'},
+  '雪':{emoji:'❄️',desc:'a snowflake',pinyin:'xuě'},
+  '风':{emoji:'🌬️',desc:'blowing wind',pinyin:'fēng'},
+  '云':{emoji:'☁️',desc:'a fluffy cloud',pinyin:'yún'},
+  '球':{emoji:'⚽',desc:'a soccer ball',pinyin:'qiú'},
+  '心':{emoji:'❤️',desc:'a red heart',pinyin:'xīn'},
+  '星':{emoji:'⭐',desc:'a shining star',pinyin:'xīng'},
+  '眼睛':{emoji:'👀',desc:'a pair of eyes',pinyin:'yǎnjīng'},
+  '手':{emoji:'✋',desc:'an open hand',pinyin:'shǒu'},
+  '脚':{emoji:'🦶',desc:'a foot',pinyin:'jiǎo'},
+  '饭':{emoji:'🍚',desc:'a bowl of rice',pinyin:'fàn'},
+  '面包':{emoji:'🍞',desc:'a loaf of bread',pinyin:'miànbāo'},
+  '牛奶':{emoji:'🥛',desc:'a glass of milk',pinyin:'niúnǎi'},
+  '蛋':{emoji:'🥚',desc:'an egg',pinyin:'dàn'},
+  '糖':{emoji:'🍬',desc:'a sweet candy',pinyin:'táng'},
+  '蛋糕':{emoji:'🎂',desc:'a birthday cake',pinyin:'dàngāo'},
+  '冰淇淋':{emoji:'🍦',desc:'an ice cream cone',pinyin:'bīngqílín'},
+  '笔':{emoji:'✏️',desc:'a pencil',pinyin:'bǐ'},
+  '门':{emoji:'🚪',desc:'a door',pinyin:'mén'},
+  '床':{emoji:'🛏️',desc:'a cozy bed',pinyin:'chuáng'},
+  '电话':{emoji:'📱',desc:'a mobile phone',pinyin:'diànhuà'},
+  '音乐':{emoji:'🎵',desc:'a musical note',pinyin:'yīnyuè'},
+  '钥匙':{emoji:'🗝️',desc:'a key',pinyin:'yàoshi'},
+  '草':{emoji:'🌿',desc:'green grass',pinyin:'cǎo'},
+  '石头':{emoji:'🪨',desc:'a rock',pinyin:'shítou'},
+  '灯':{emoji:'💡',desc:'a light bulb',pinyin:'dēng'},
+  '帽子':{emoji:'🎩',desc:'a hat',pinyin:'màozi'},
+  '鞋':{emoji:'👟',desc:'a shoe',pinyin:'xié'},
+  '衣服':{emoji:'👕',desc:'a t-shirt',pinyin:'yīfu'},
+  '裤子':{emoji:'👖',desc:'a pair of pants',pinyin:'kùzi'},
+  '伞':{emoji:'☂️',desc:'an umbrella',pinyin:'sǎn'},
+};
+
+let words=[], gameData=[], curQ=0, score=0, results=[];
+let apiKey=localStorage.getItem('cw_key')||'';
+
+// Show key-saved state if key already stored
+if(apiKey){
+  document.getElementById('key-saved').style.display='block';
+  document.getElementById('key-input').placeholder='Key already saved';
+}
+
+function saveKey(){
+  const v=document.getElementById('key-input').value.trim();
+  if(!v){alert('Please paste your API key first.');return;}
+  if(!v.startsWith('sk-')){alert('API key should start with sk-');return;}
+  apiKey=v;
+  localStorage.setItem('cw_key',v);
+  document.getElementById('key-saved').style.display='block';
+  document.getElementById('key-saved').textContent='✅ Key saved!';
+  document.getElementById('key-input').value='';
+  document.getElementById('key-input').placeholder='Key already saved';
+}
+
+document.getElementById('wi').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){e.preventDefault();addWord();}
+});
+
+function addWord(){
+  var v=document.getElementById('wi').value.trim();
+  if(!v){return;}
+  if(words.indexOf(v)!==-1){document.getElementById('wi').value='';return;}
+  words.push(v);
+  document.getElementById('wi').value='';
+  document.getElementById('wi').focus();
+  renderChips();
+  updateStartBtn();
+}
+
+function removeWord(i){
+  words.splice(i,1);
+  renderChips();
+  updateStartBtn();
+}
+
+function updateStartBtn(){
+  var btn=document.getElementById('start-btn');
+  if(words.length>=2){
+    btn.removeAttribute('disabled');
+  } else {
+    btn.setAttribute('disabled','disabled');
+  }
+}
+
+function renderChips(){
+  var el=document.getElementById('chips');
+  if(words.length===0){
+    el.innerHTML='<span style="font-size:13px;color:var(--g400)">Add words below to start!</span>';
+    return;
+  }
+  var html='';
+  for(var i=0;i<words.length;i++){
+    html+='<div class="chip">'+words[i]+'<button class="chip-x" onclick="removeWord('+i+')">×</button></div>';
+  }
+  el.innerHTML=html;
+}
+
+function showScreen(id){
+  var screens=document.querySelectorAll('.screen');
+  for(var i=0;i<screens.length;i++) screens[i].classList.remove('active');
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame(){
+  var unknown=words.filter(function(w){return !DICT[w];});
+  if(unknown.length===0){
+    var data=words.map(function(w){return Object.assign({word:w},DICT[w]);});
+    beginGame(data);
+  } else if(apiKey){
+    callAPI();
+  } else {
+    // Use only known words if no key, warn about unknown
+    var known=words.filter(function(w){return DICT[w];});
+    if(known.length>=2){
+      var msg='These words aren\'t in the built-in list and need an API key:\n'+unknown.join(', ')+'\n\nStarting with the '+known.length+' known words instead. Add your API key above to use all words.';
+      alert(msg);
+      var data2=known.map(function(w){return Object.assign({word:w},DICT[w]);});
+      beginGame(data2);
+    } else {
+      alert('To use custom words like "'+unknown.join(', ')+'", please add an Anthropic API key above.\n\nOr try built-in words like: 猫 狗 鱼 苹果 太阳 月亮 花 书 水 火');
+    }
+  }
+}
+
+function beginGame(data){
+  gameData=data.slice();
+  shuffle(gameData);
+  curQ=0; score=0; results=[];
+  showScreen('quiz-screen');
+  renderQ();
+}
+
+function shuffle(a){
+  for(var i=a.length-1;i>0;i--){
+    var j=Math.floor(Math.random()*(i+1));
+    var t=a[i];a[i]=a[j];a[j]=t;
+  }
+}
+
+async function callAPI(){
+  showScreen('loading-screen');
+  var msgs=['Looking up your words…','Picking the best emojis…','Shuffling the options…','Almost ready! 🎉'];
+  var mi=0;
+  var loadEl=document.getElementById('load-msg');
+  var iv=setInterval(function(){if(mi<msgs.length)loadEl.textContent=msgs[mi++];},1400);
+
+  var known=words.filter(function(w){return DICT[w];}).map(function(w){return Object.assign({word:w},DICT[w]);});
+  var unknown=words.filter(function(w){return !DICT[w];});
+
+  try{
+    var prompt='You are making a Chinese word recognition game for young children.\nFor each word, return a JSON array with objects containing:\n- "word": exact Chinese word\n- "emoji": 1-2 clear child-friendly emojis\n- "desc": short English description e.g. "a fluffy cat"\n- "pinyin": Mandarin pinyin with tone marks\nReturn ONLY valid JSON array, no markdown.\nWords: '+unknown.join(', ');
+
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:800,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+
+    clearInterval(iv);
+
+    if(!resp.ok){
+      var err=await resp.json().catch(function(){return {};});
+      throw new Error((err.error&&err.error.message)||'API error '+resp.status);
+    }
+    var data=await resp.json();
+    var text=data.content.filter(function(b){return b.type==='text';}).map(function(b){return b.text;}).join('');
+    text=text.replace(/```json|```/g,'').trim();
+    var aiWords=JSON.parse(text);
+    beginGame(known.concat(aiWords));
+  }catch(e){
+    clearInterval(iv);
+    showScreen('setup-screen');
+    alert('API error: '+(e.message||'Unknown error')+'\n\nTip: Words like 猫 狗 苹果 work without any API key!');
+  }
+}
+
+function renderQ(){
+  var q=gameData[curQ], total=gameData.length;
+  document.getElementById('q-num').textContent='Question '+(curQ+1)+' of '+total;
+  document.getElementById('q-score').textContent='⭐ '+score;
+  document.getElementById('prog').style.width=Math.round((curQ/total)*100)+'%';
+  document.getElementById('pinyin-display').textContent=q.pinyin||'';
+  document.getElementById('pic-emoji').textContent=q.emoji;
+  document.getElementById('pic-desc').textContent=q.desc||'';
+
+  var fb=document.getElementById('fb');
+  fb.className='fb';
+  document.getElementById('next-btn').classList.remove('show');
+
+  var wrong=gameData.filter(function(_,i){return i!==curQ;}).map(function(d){return d.word;});
+  shuffle(wrong);
+  var opts=[q.word].concat(wrong.slice(0,Math.min(3,wrong.length)));
+  shuffle(opts);
+
+  var grid=document.getElementById('opts');
+  grid.style.gridTemplateColumns=opts.length<3?'1fr':'1fr 1fr';
+  var html='';
+  for(var i=0;i<opts.length;i++){
+    html+='<button class="opt" onclick="check(\''+opts[i]+'\',\''+q.word+'\')">'+opts[i]+'</button>';
+  }
+  grid.innerHTML=html;
+}
+
+function check(chosen,correct){
+  var q=gameData[curQ];
+  var ok=chosen===correct;
+  var btns=document.querySelectorAll('.opt');
+  for(var i=0;i<btns.length;i++){
+    btns[i].setAttribute('disabled','disabled');
+    if(btns[i].textContent===correct) btns[i].classList.add('correct');
+    else if(btns[i].textContent===chosen&&!ok) btns[i].classList.add('wrong');
+  }
+  var fb=document.getElementById('fb');
+  if(ok){
+    fb.className='fb correct';
+    fb.textContent='✅ Correct! "'+correct+'" ('+q.pinyin+') — '+q.desc;
+    score++;
+  } else {
+    fb.className='fb wrong';
+    fb.textContent='❌ The answer is "'+correct+'" ('+q.pinyin+') — '+q.desc;
+  }
+  results.push({word:correct,pinyin:q.pinyin,emoji:q.emoji,desc:q.desc,correct:ok});
+  document.getElementById('next-btn').classList.add('show');
+  document.getElementById('q-score').textContent='⭐ '+score;
+}
+
+function nextQ(){
+  curQ++;
+  if(curQ>=gameData.length) showResults();
+  else renderQ();
+}
+
+function showResults(){
+  document.getElementById('prog').style.width='100%';
+  var total=gameData.length, pct=score/total;
+  document.getElementById('r-trophy').textContent=pct>=.8?'🏆':pct>=.5?'🌟':'💪';
+  document.getElementById('r-score').textContent=score+'/'+total;
+  document.getElementById('r-sub').textContent=pct>=.8?'Amazing! You\'re a star! 🎉':pct>=.5?'Good job! Keep practising!':'Keep going, you\'re learning!';
+  var html='';
+  for(var i=0;i<results.length;i++){
+    var r=results[i];
+    html+='<div class="res-item"><span style="font-size:20px">'+(r.correct?'✅':'❌')+'</span><span style="font-size:28px">'+r.emoji+'</span><div><div class="ri-word">'+r.word+'</div><div class="ri-meta">'+r.pinyin+' · '+r.desc+'</div></div></div>';
+  }
+  document.getElementById('r-list').innerHTML=html;
+  showScreen('result-screen');
+}
+
+function restart(){showScreen('setup-screen');}
+</script>
+</body>
+</html>
